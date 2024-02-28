@@ -26,7 +26,7 @@ const Page = (props: Props) => {
   //   };
   // };
 
-  const addEntries = async (page = 1, itemPerPage = 10) => {
+  const addEntries = async (page?: number, itemPerPage? : number)=> {
     try {
       const res = await fetch(`https://jsonplaceholder.typicode.com/users?page=${page}&limit=${itemPerPage}`);
       const data = await res.json();
@@ -40,7 +40,7 @@ const Page = (props: Props) => {
       return {
         options: elements,
         hasMore: true,
-        page: page + 1,
+        page: page && page + 1,
       };
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -51,7 +51,6 @@ const Page = (props: Props) => {
       };
     }
   };
-  console.log(addEntries())
 
   const searchFunction = (
     args?: string,
@@ -76,7 +75,7 @@ const Page = (props: Props) => {
         setTextInput={setTextInput}
         customDropdownIcon={<RiArrowDropDownLine />}
         pageForSelect = {1}
-        itemPerPageForSelect = {10}
+        itemPerPageForSelect = {20}
       />
     </div>
   );

@@ -22,6 +22,8 @@ interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   optionAreaClassName?: string;
   pageForSelect? : number;
   itemPerPageForSelect?  :number;
+  pageForSearch? : number;
+  itemPerPageForSearch? : number;
 }
 
 const useOutsideClick = (ref: RefObject<HTMLDivElement>) => {
@@ -57,8 +59,10 @@ const InfiniteSearchSelect = ({
   selectClassName = "",
   optionClassName = "",
   optionAreaClassName = "",
-  pageForSelect = 0,
+  pageForSelect = 1,
   itemPerPageForSelect = 10,
+  pageForSearch = 1,
+  itemPerPageForSearch = 10,
   ...rest
 }: InfiniteSearchSelectProps) => {
   const [isSelected, setIsSelected] = useState(false);
@@ -86,7 +90,7 @@ const InfiniteSearchSelect = ({
         return;
       }
       const fetchedResult = await optionFunction(selectPageRef.current, itemPerPageForSelect)
-      selectPageRef.current = fetchedResult?.page + 1
+      selectPageRef.current = fetchedResult?.page
       setOptionList((value) => {
         return [
           ...value,

@@ -54,28 +54,30 @@ const Page = (props: Props) => {
 
   const searchFunction = (
     args?: string,
-    page?: number,
-    itemPerPage?: number
   ) => {
     if (args === "myname") {
-      return true;
+      return true
     }
-    return false;
+    return false
   };
 
   const [textInput, setTextInput] = useState("");
   console.log(textInput);
 
+  const textSetterFunction = (value : any) => {
+    setTextInput(value)
+  } 
   return (
     <div className="flex justify-center items-center h-[100vh]">
       <InfiniteSearchSelect
         optionFunction={addEntries}
         searchFunction={searchFunction}
         textInput={textInput}
-        setTextInput={setTextInput}
+        setTextInput={textSetterFunction}
         customDropdownIcon={<RiArrowDropDownLine />}
         pageForSelect = {1}
         itemPerPageForSelect = {20}
+        enableDebounce= {true}
       />
     </div>
   );

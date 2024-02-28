@@ -11,19 +11,17 @@ import {
 
 interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   optionFunction: (page?: number, itemPerPage?: number) => any;
-  searchFunction?:(args: string, page?: number, itemPerPage?: number) => any;
+  searchFunction?: (args: string) => any;
   textInput: any;
-  setTextInput: React.Dispatch<SetStateAction<string>>;
+  setTextInput: (value : any) => any;
   enableDebounce?: boolean;
   delay?: number;
   customDropdownIcon?: React.ReactNode;
   optionClassName?: string;
   selectClassName?: string;
   optionAreaClassName?: string;
-  pageForSelect? : number;
-  itemPerPageForSelect?  :number;
-  pageForSearch? : number;
-  itemPerPageForSearch? : number;
+  pageForSelect?: number;
+  itemPerPageForSelect?: number;
 }
 
 const useOutsideClick = (ref: RefObject<HTMLDivElement>) => {
@@ -61,22 +59,24 @@ const InfiniteSearchSelect = ({
   optionAreaClassName = "",
   pageForSelect = 1,
   itemPerPageForSelect = 10,
-  pageForSearch = 1,
-  itemPerPageForSearch = 10,
   ...rest
 }: InfiniteSearchSelectProps) => {
   const [isSelected, setIsSelected] = useState(false);
+  const [isSearch, setIsSearch] = useState(false);
   const [optionList, setOptionList] = useState<any[]>([]);
+  const [searchList, setSearchList] = useState<any[]>([]);
+
   const optionAreaRef = useRef<HTMLDivElement>(null);
   const { isOutside } = useOutsideClick(optionAreaRef);
   const lastOptionRef = useRef<HTMLLIElement>(null);
-  const selectPageRef = useRef(pageForSelect)
-  const hasMore = useRef(true)
+  const selectPageRef = useRef(pageForSelect);
+  const hasMore = useRef(true);
+
   useEffect(() => {
-    if (!hasMore){
+    if (!hasMore) {
       return;
     }
-    const lastOption = lastOptionRef.current
+    const lastOption = lastOptionRef.current;
     const options = {
       root: optionAreaRef.current,
       rootMargin: "0px",
@@ -89,13 +89,13 @@ const InfiniteSearchSelect = ({
       if (!first.isIntersecting) {
         return;
       }
-      const fetchedResult = await optionFunction(selectPageRef.current, itemPerPageForSelect)
-      selectPageRef.current = fetchedResult?.page
+      const fetchedResult = await optionFunction(
+        selectPageRef.current,
+        itemPerPageForSelect
+      );
+      selectPageRef.current = fetchedResult?.page;
       setOptionList((value) => {
-        return [
-          ...value,
-          ...fetchedResult?.options,
-        ];
+        return [...value, ...fetchedResult?.options];
       });
     }, options);
 
@@ -109,7 +109,6 @@ const InfiniteSearchSelect = ({
       }
     };
   });
-
 
   useEffect(() => {
     if (isOutside) {
@@ -144,7 +143,22 @@ const InfiniteSearchSelect = ({
   }, delay);
 
   const handleTextChange = (e: ChangeEvent<HTMLInputElement>) => {
-    debouncedSetTextInput(e.target.value);
+    const currentText = e.target.value;
+    
+    if (currentText !== "") {
+      setIsSearch(true);
+    }else{
+      setIsSearch(false);
+    }
+
+    if (enableDebounce) {
+      debouncedSetTextInput(currentText);
+    }
+    setTextInput(currentText);
+
+    if (searchFunction) {
+      setSearchList(searchFunction(currentText)?.options);
+    }
   };
 
   return (
@@ -153,11 +167,7 @@ const InfiniteSearchSelect = ({
         <div className="flex relative">
           <div className="flex flex-col">
             <input
-              onChange={
-                enableDebounce
-                  ? handleTextChange
-                  : (e) => setTextInput(e.target.value)
-              }
+              onChange={handleTextChange}
               className={`text-black bg-white ${selectClassName}`}
               value={textInput?.key || textInput}
               {...rest}
@@ -184,6 +194,24 @@ const InfiniteSearchSelect = ({
                     className=""
                     ref={lastOptionRef}
                   ></li>
+                </ul>
+              </div>
+            )}
+            {isSearch && (
+              <div
+                className={`h-[100px] overflow-auto absolute w-full ${optionAreaClassName}`}
+                style={{ top: "calc(100% + 5px)", left: 0 }}
+              >
+                <ul>
+                  {searchList?.map((search, index) => (
+                    <li
+                      key={search?.id || index}
+                      onClick={() => handleChooseOption(search)}
+                      className={`hover:cursor-pointer ${optionClassName}`}
+                    >
+                      {search?.key || search}
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}

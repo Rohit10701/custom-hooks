@@ -97,7 +97,7 @@ const Page = (props: Props) => {
         searchFunction={searchFunction}
         textInput={textInput}
         setTextInput={textSetterFunction}
-        // customDropdownIcon={<RiArrowDropDownLine />}
+        customDropdownIcon={<RiArrowDropDownLine />}
         pageForSelect = {1}
         itemPerPageForSelect = {20}
       />

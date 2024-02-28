@@ -139,11 +139,11 @@ const InfiniteSearchSelect = ({
   return (
     <>
       <div className="inline-block">
-        <div className="flex relative">
+        <div className="flex relative justify-center items-center">
           <div className="flex flex-col">
             <input
               onChange={handleTextChange}
-              className={`text-black bg-white ${selectClassName}`}
+              className={`text-black bg-white ${selectClassName} h-[40px] rounded-sm pl-3`}
               value={textInput?.key || textInput}
               {...rest}
             />
@@ -151,7 +151,7 @@ const InfiniteSearchSelect = ({
             {isSelected && (
               <div
                 ref={optionAreaRef}
-                className={`h-[100px] overflow-auto absolute w-full ${optionAreaClassName}`}
+                className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black ${optionAreaClassName}`}
                 style={{ top: "calc(100% + 5px)", left: 0 }}
               >
                 <ul>
@@ -159,7 +159,7 @@ const InfiniteSearchSelect = ({
                     <li
                       key={option?.id || index}
                       onClick={() => handleChooseOption(option)}
-                      className={`hover:cursor-pointer ${optionClassName}`}
+                      className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${optionClassName}`}
                     >
                       {option?.key || option}
                     </li>
@@ -174,15 +174,15 @@ const InfiniteSearchSelect = ({
             )}
             {isSearch && (
               <div
-                className={`h-[100px] overflow-auto absolute w-full ${optionAreaClassName}`}
-                style={{ top: "calc(100% + 5px)", left: 0 }}
+              className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black ${optionAreaClassName}`}
+              style={{ top: "calc(100% + 5px)", left: 0 }}
               >
                 <ul>
                   {searchList?.map((search, index) => (
                     <li
                       key={search?.id || index}
                       onClick={() => handleChooseOption(search)}
-                      className={`hover:cursor-pointer ${optionClassName}`}
+                      className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${optionClassName}`}
                     >
                       {search?.key || search}
                     </li>
@@ -194,7 +194,7 @@ const InfiniteSearchSelect = ({
 
           {!isSelected && (
             <div
-              className="absolute right-0 text-black text-2xl hover:cursor-pointer"
+              className="absolute right-0 text-black text-2xl hover:cursor-pointer flex justify-center items-center w-[40px] h-[40px] bg-white"
               onClick={() => {
                 setIsSelected(!isSelected),
                   setTextInput(""),

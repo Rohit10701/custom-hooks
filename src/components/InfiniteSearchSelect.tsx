@@ -1,4 +1,6 @@
 "use client";
+import { useDebounce } from "@/hooks/use-debounce";
+import useOutsideClick from "@/hooks/use-outsideclick";
 import {
   ChangeEvent,
   RefObject,
@@ -13,8 +15,7 @@ interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   optionFunction: (page?: number, itemPerPage?: number) => any;
   searchFunction?: (args: string) => any;
   textInput: any;
-  setTextInput: (value : any) => any;
-  enableDebounce?: boolean;
+  setTextInput: (value: any) => any;
   delay?: number;
   customDropdownIcon?: React.ReactNode;
   optionClassName?: string;
@@ -24,34 +25,23 @@ interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   itemPerPageForSelect?: number;
 }
 
-const useOutsideClick = (ref: RefObject<HTMLDivElement>) => {
-  const [isOutside, setIsOutside] = useState<boolean>(false);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      console.log(ref.current);
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setIsOutside(true);
-      } else {
-        setIsOutside(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [ref]);
-
-  return { isOutside };
-};
+const dropdownArrowSVG = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width="24"
+    height="24"
+    id="chevron-down"
+  >
+    <path d="M12,15a1,1,0,0,1-.71-.29l-4-4A1,1,0,0,1,8.71,9.29L12,12.59l3.29-3.29a1,1,0,0,1,1.41,1.41l-4,4A1,1,0,0,1,12,15Z"></path>
+  </svg>
+);
 
 const InfiniteSearchSelect = ({
   optionFunction,
   searchFunction,
   textInput,
   setTextInput,
-  enableDebounce = true,
   delay = 300,
   customDropdownIcon,
   selectClassName = "",
@@ -65,9 +55,10 @@ const InfiniteSearchSelect = ({
   const [isSearch, setIsSearch] = useState(false);
   const [optionList, setOptionList] = useState<any[]>([]);
   const [searchList, setSearchList] = useState<any[]>([]);
+  const [debouncedInput, setDebouncedInput] = useState("");
 
   const optionAreaRef = useRef<HTMLDivElement>(null);
-  const { isOutside } = useOutsideClick(optionAreaRef);
+  const isOutside = useOutsideClick(optionAreaRef);
   const lastOptionRef = useRef<HTMLLIElement>(null);
   const selectPageRef = useRef(pageForSelect);
   const hasMore = useRef(true);
@@ -85,7 +76,6 @@ const InfiniteSearchSelect = ({
 
     const observer = new IntersectionObserver(async (entries) => {
       const first = entries[0];
-      console.log(entries);
       if (!first.isIntersecting) {
         return;
       }
@@ -119,46 +109,31 @@ const InfiniteSearchSelect = ({
   const handleChooseOption = (option: any) => {
     setTextInput(option);
     setIsSelected(false);
+    setIsSearch(false);
   };
 
-  const debounce = <F extends (...args: any[]) => void>(
-    func: F,
-    delay: number
-  ) => {
-    let timeoutId: NodeJS.Timeout;
+  const debounceValue = useDebounce(debouncedInput, delay);
 
-    return function (this: ThisParameterType<F>, ...args: Parameters<F>) {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+  useEffect(() => {
+    const fetchSearchDetials = async () => {
+      if (searchFunction) {
+        const searchValue = await searchFunction(debounceValue);
+        setSearchList(searchValue?.options);
       }
-
-      timeoutId = setTimeout(() => {
-        func.apply(this, args);
-      }, delay);
     };
-  };
-
-  const debouncedSetTextInput = debounce((value: string) => {
-    setTextInput(value);
-  }, delay);
+    fetchSearchDetials();
+  }, [searchFunction, debounceValue]);
 
   const handleTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     const currentText = e.target.value;
-    
+
     if (currentText !== "") {
       setIsSearch(true);
-    }else{
+    } else {
       setIsSearch(false);
     }
-
-    if (enableDebounce) {
-      debouncedSetTextInput(currentText);
-    }
+    !isSelected && setDebouncedInput(currentText);
     setTextInput(currentText);
-
-    if (searchFunction) {
-      setSearchList(searchFunction(currentText)?.options);
-    }
   };
 
   return (
@@ -220,9 +195,13 @@ const InfiniteSearchSelect = ({
           {!isSelected && (
             <div
               className="absolute right-0 text-black text-2xl hover:cursor-pointer"
-              onClick={() => setIsSelected(!isSelected)}
+              onClick={() => {
+                setIsSelected(!isSelected),
+                  setTextInput(""),
+                  setIsSearch(false);
+              }}
             >
-              {customDropdownIcon}
+              {customDropdownIcon || dropdownArrowSVG}
             </div>
           )}
         </div>
@@ -232,7 +211,3 @@ const InfiniteSearchSelect = ({
 };
 
 export default InfiniteSearchSelect;
-
-// optionFunction -> {key:, value:, id:}[] or []
-// placeholder
-//

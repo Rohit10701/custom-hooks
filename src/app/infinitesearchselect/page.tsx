@@ -52,13 +52,36 @@ const Page = (props: Props) => {
     }
   };
 
-  const searchFunction = (
+  const searchFunction = async (
     args?: string,
   ) => {
-    if (args === "myname") {
-      return true
+    try {
+      const res = await fetch(`https://jsonplaceholder.typicode.com/${args}`);
+      if(res.ok){
+        const data = await res.json();
+    
+        const elements = data.map((entry : any) => ({
+          key: entry.title,
+          value: entry.completed,
+          id: entry.id
+        }));
+    
+        return {
+          options: elements,
+        };
+      }
+      else{
+        console.error("Error fetching data");
+      return {
+        options: [],
+      };
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      return {
+        options: [],
+      };
     }
-    return false
   };
 
   const [textInput, setTextInput] = useState("");
@@ -74,10 +97,9 @@ const Page = (props: Props) => {
         searchFunction={searchFunction}
         textInput={textInput}
         setTextInput={textSetterFunction}
-        customDropdownIcon={<RiArrowDropDownLine />}
+        // customDropdownIcon={<RiArrowDropDownLine />}
         pageForSelect = {1}
         itemPerPageForSelect = {20}
-        enableDebounce= {true}
       />
     </div>
   );

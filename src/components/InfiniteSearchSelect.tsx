@@ -23,6 +23,7 @@ interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   optionAreaClassName?: string;
   pageForSelect?: number;
   itemPerPageForSelect?: number;
+  renderOption?: (option: any) => React.ReactNode;
 }
 
 const dropdownArrowSVG = (
@@ -49,6 +50,7 @@ const InfiniteSearchSelect = ({
   optionAreaClassName = "",
   pageForSelect = 1,
   itemPerPageForSelect = 10,
+  renderOption,
   ...rest
 }: InfiniteSearchSelectProps) => {
   const [isSelected, setIsSelected] = useState(false);
@@ -161,7 +163,9 @@ const InfiniteSearchSelect = ({
                       onClick={() => handleChooseOption(option)}
                       className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${optionClassName}`}
                     >
-                      {option?.key || option}
+                      {renderOption
+                        ? renderOption(option)
+                        : option?.key || option}
                     </li>
                   ))}
                   <li
@@ -174,8 +178,8 @@ const InfiniteSearchSelect = ({
             )}
             {isSearch && (
               <div
-              className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black ${optionAreaClassName}`}
-              style={{ top: "calc(100% + 5px)", left: 0 }}
+                className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black ${optionAreaClassName}`}
+                style={{ top: "calc(100% + 5px)", left: 0 }}
               >
                 <ul>
                   {searchList?.map((search, index) => (
@@ -184,7 +188,9 @@ const InfiniteSearchSelect = ({
                       onClick={() => handleChooseOption(search)}
                       className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${optionClassName}`}
                     >
-                      {search?.key || search}
+                      {renderOption
+                        ? renderOption(search)
+                        : search?.key || search}
                     </li>
                   ))}
                 </ul>

@@ -3,8 +3,6 @@ import { useDebounce } from "@/hooks/use-debounce";
 import useOutsideClick from "@/hooks/use-outsideclick";
 import {
   ChangeEvent,
-  RefObject,
-  SetStateAction,
   useEffect,
   useRef,
   useState,
@@ -21,9 +19,13 @@ interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   optionClassName?: string;
   selectClassName?: string;
   optionAreaClassName?: string;
+  pillAreaClassName? : string;
+  pillClassName? :string;
   pageForSelect?: number;
   itemPerPageForSelect?: number;
+  multiple?: boolean;
   renderOption?: (option: any) => React.ReactNode;
+  renderPill? :(option: any) => React.ReactNode;
 }
 
 const dropdownArrowSVG = (
@@ -48,9 +50,13 @@ const InfiniteSearchSelect = ({
   selectClassName = "",
   optionClassName = "",
   optionAreaClassName = "",
+  pillAreaClassName = "",
+  pillClassName = "",
   pageForSelect = 1,
   itemPerPageForSelect = 10,
+  multiple = false,
   renderOption,
+  renderPill,
   ...rest
 }: InfiniteSearchSelectProps) => {
   const [isSelected, setIsSelected] = useState(false);
@@ -58,6 +64,7 @@ const InfiniteSearchSelect = ({
   const [optionList, setOptionList] = useState<any[]>([]);
   const [searchList, setSearchList] = useState<any[]>([]);
   const [debouncedInput, setDebouncedInput] = useState("");
+  const [selectedOptions, setSelectedOptions] = useState<any[]>([]);
 
   const optionAreaRef = useRef<HTMLDivElement>(null);
   const isOutside = useOutsideClick(optionAreaRef);
@@ -109,10 +116,25 @@ const InfiniteSearchSelect = ({
   }, [isOutside]);
 
   const handleChooseOption = (option: any) => {
-    setTextInput(option);
-    setIsSelected(false);
-    setIsSearch(false);
+    if (multiple && isSelected) {
+      setSelectedOptions((prevOptions) => {
+        const isSelected = prevOptions.some((o) => o.id === option.id);
+        return isSelected
+          ? prevOptions.filter((o) => o.id !== option.id)
+          : [...prevOptions, option];
+      });
+    } else {
+      setTextInput(option);
+      setIsSelected(false);
+      setIsSearch(false);
+    }
   };
+
+  const handleDeletePill = (option : any) => {
+    const filterdOptions = selectedOptions.filter(item => item !== option)
+    setSelectedOptions(filterdOptions)
+    setTextInput(filterdOptions)
+  }
 
   const debounceValue = useDebounce(debouncedInput, delay);
 
@@ -125,6 +147,7 @@ const InfiniteSearchSelect = ({
     };
     fetchSearchDetials();
   }, [searchFunction, debounceValue]);
+
 
   const handleTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     const currentText = e.target.value;
@@ -146,14 +169,14 @@ const InfiniteSearchSelect = ({
             <input
               onChange={handleTextChange}
               className={`text-black bg-white ${selectClassName} h-[40px] rounded-sm pl-3`}
-              value={textInput?.key || textInput}
+              value={(!multiple && isSearch) ? (textInput?.key || textInput) : ""}
               {...rest}
             />
 
             {isSelected && (
               <div
                 ref={optionAreaRef}
-                className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black ${optionAreaClassName}`}
+                className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black z-20 ${optionAreaClassName}`}
                 style={{ top: "calc(100% + 5px)", left: 0 }}
               >
                 <ul>
@@ -161,7 +184,13 @@ const InfiniteSearchSelect = ({
                     <li
                       key={option?.id || index}
                       onClick={() => handleChooseOption(option)}
-                      className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${optionClassName}`}
+                      className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${
+                        selectedOptions?.some(
+                          (selectedOption) => selectedOption.id === option.id
+                        )
+                          ? "bg-blue-400"
+                          : ""
+                      } ${optionClassName}`}
                     >
                       {renderOption
                         ? renderOption(option)
@@ -176,6 +205,30 @@ const InfiniteSearchSelect = ({
                 </ul>
               </div>
             )}
+
+            {selectedOptions.length > 0 && (
+              <div
+                className={`h-[100px] overflow-auto absolute w-full rounded-sm pt-1 text-black z-10 ${pillAreaClassName}`}
+                style={{ top: "calc(100% + 5px)", left: 0 }}
+              >
+                <div className="flex flex-wrap gap-x-1 gap-y-2">
+                  {selectedOptions?.map((option, index) => (
+                    <span
+                      key={option?.id || index}
+                      onClick={() => handleDeletePill(option)}
+                      className={`hover:cursor-pointer rounded-sm px-[10px] py-[1px] mx-[5px] inline-block bg-blue-400 ${optionClassName}`}
+                    >
+                      {renderOption
+                        ? renderOption(option)
+                        : option?.key || option}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+
+            
             {isSearch && (
               <div
                 className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black ${optionAreaClassName}`}

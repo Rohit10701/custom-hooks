@@ -85,18 +85,18 @@ const Page = (props: Props) => {
   };
 
   const [textInput, setTextInput] = useState("");
-  console.log(textInput);
-
+  
   const textSetterFunction = (value : any) => {
     setTextInput(value)
   } 
-
+  
   const renderOption = (option : any) => (
     <div>
-      <h1> hi </h1>
       <strong>{option.id}</strong>: {option.key}
     </div>
   );
+  console.log(textInput);
+
   return (
     <div className="flex justify-center items-center h-[100vh]">
       <InfiniteSearchSelect
@@ -108,6 +108,8 @@ const Page = (props: Props) => {
         pageForSelect = {1}
         itemPerPageForSelect = {20}
         renderOption={renderOption}
+        multiple= {true}
+        // renderPill={renderOption}
       />
     </div>
   );

@@ -7,9 +7,57 @@ import {
   useRef,
   useState,
   HTMLAttributes,
+  forwardRef,
 } from "react";
+import { VariantProps, cva } from "class-variance-authority";
+import { cn } from "@/libs/utils";
+const selectVariants = cva(
+  "h-[40px] rounded-sm pl-3 inline-flex items-center justify-center rounded-md text-sm font-medium focus:outline-none ",
+  {
+    variants: {
+      variant: {
+        dark:
+          "bg-black text-white border-2 border-white border-input hover:bg-accent hover:text-accent-foreground",
+        white:
+          "bg-white text-black  border-2 border-black bg-secondary text-secondary-foreground hover:bg-secondary/80",
+      },
+      size: {
+        sm: "h-11 px-4 rounded-md w-56",
+        lg: "h-11 px-4 rounded-md w-72",
+      },
+    },
+    defaultVariants: {
+      variant: "dark",
+      size: "lg",
+    },
+  }
+);
 
-interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
+const dropdownVariants = cva(
+  "absolute right-0 text-3xl hover:cursor-pointer flex justify-center items-center w-[36px] h-[36px]",
+  {
+    variants: {
+      variant: {
+        dark:
+          "bg-black text-white",
+        white:
+          "bg-white text-black",
+      },
+      size: {
+        sm: "h-10 px-4 mx-1 rounded-md w-12",
+        lg: "h-10 px-4 mx-1 rounded-md w-12",
+      },
+    },
+    defaultVariants: {
+      variant: "dark",
+      size: "lg",
+    },
+  }
+);
+
+interface InfiniteSearchSelectProps
+  extends HTMLAttributes<HTMLInputElement>,
+    VariantProps<typeof selectVariants> {
   optionFunction: (page?: number, itemPerPage?: number) => any;
   searchFunction?: (args: string) => any;
   textInput: any;
@@ -26,12 +74,13 @@ interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   multiple?: boolean;
   renderOption?: (option: any) => React.ReactNode;
   renderPill?: (option: any) => React.ReactNode;
+  variant? :"dark" | "white" ;
+  size? :"sm" | "lg";
 }
 
-const dropdownArrowSVG = (
+const dropdownArrowBlackSVG = (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
     width="24"
     height="24"
     id="chevron-down"
@@ -39,6 +88,21 @@ const dropdownArrowSVG = (
     <path d="M12,15a1,1,0,0,1-.71-.29l-4-4A1,1,0,0,1,8.71,9.29L12,12.59l3.29-3.29a1,1,0,0,1,1.41,1.41l-4,4A1,1,0,0,1,12,15Z"></path>
   </svg>
 );
+const dropdownArrowWhiteSVG = (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    id="chevron-down"
+  >
+    <path
+      d="M12,15a1,1,0,0,1-.71-.29l-4-4A1,1,0,0,1,8.71,9.29L12,12.59l3.29-3.29a1,1,0,0,1,1.41,1.41l-4,4A1,1,0,0,1,12,15Z"
+      stroke="white"
+      fill="white"
+    ></path>
+  </svg>
+);
+
 
 const InfiniteSearchSelect = ({
   optionFunction,
@@ -56,8 +120,9 @@ const InfiniteSearchSelect = ({
   itemPerPageForSelect = 10,
   multiple = false,
   renderOption,
+  variant, size,
   renderPill,
-  ...rest
+  ...props
 }: InfiniteSearchSelectProps) => {
   const [isSelected, setIsSelected] = useState(false);
   const [isSearch, setIsSearch] = useState(false);
@@ -112,7 +177,7 @@ const InfiniteSearchSelect = ({
   useEffect(() => {
     if (isOutside) {
       setIsSelected(false);
-      setIsSearch(false)
+      setIsSearch(false);
     }
   }, [isOutside]);
 
@@ -158,9 +223,9 @@ const InfiniteSearchSelect = ({
 
     if (currentText !== "") {
       setIsSearch(true);
-      setMultipleOption(false)
-      setIsSelected(false)
-      setSelectedOptions([])
+      setMultipleOption(false);
+      setIsSelected(false);
+      setSelectedOptions([]);
     } else {
       setIsSearch(false);
       setMultipleOption(true);
@@ -176,9 +241,9 @@ const InfiniteSearchSelect = ({
           <div className="flex flex-col">
             <input
               onChange={handleTextChange}
-              className={`text-black bg-white  h-[40px] rounded-sm pl-3 ${selectClassName}`}
-              value={(!multipleOption ) ? textInput?.key : ""}
-              {...rest}
+              className={cn(selectVariants({ variant, size }))}
+              value={!multipleOption ? textInput?.key : ""}
+              {...props}
             />
 
             {isSelected && (
@@ -190,7 +255,7 @@ const InfiniteSearchSelect = ({
                 <ul>
                   {optionList?.map((option, index) => (
                     <li
-                      key={option?.id}
+                      key={option?.id || (selectPageRef.current*10 + (index))}
                       onClick={() => handleChooseOption(option)}
                       className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${
                         selectedOptions?.some(
@@ -254,14 +319,14 @@ const InfiniteSearchSelect = ({
 
           {!isSelected && (
             <div
-              className="absolute right-0 text-black text-2xl hover:cursor-pointer flex justify-center items-center w-[40px] h-[40px] bg-white"
+              className={cn(dropdownVariants({ variant, size }))}
               onClick={() => {
                 setIsSelected(!isSelected),
                   setTextInput(""),
                   setIsSearch(false);
               }}
             >
-              {customDropdownIcon || dropdownArrowSVG}
+              {customDropdownIcon || ("dark" ? dropdownArrowBlackSVG : dropdownArrowWhiteSVG)}
             </div>
           )}
         </div>

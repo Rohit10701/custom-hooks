@@ -34,7 +34,7 @@ const Page = (props: Props) => {
       const elements = data.map((entry : any) => ({
         key: entry.name,
         value: entry.email,
-        id: entry.id
+        // id: entry.id
       }));
   
       return {
@@ -110,8 +110,11 @@ const Page = (props: Props) => {
         renderOption={renderOption}
         // multiple= {true}
         // renderPill={renderOption}
+        // variant="white"
+        size="lg"
       />
     </div>
+
   );
 };
 

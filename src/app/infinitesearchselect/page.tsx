@@ -40,7 +40,7 @@ const Page = (props: Props) => {
       return {
         options: elements,
         hasMore: true,
-        page: page && page + 1,
+        page: page,
       };
     } catch (error) {
       console.error("Error fetching data:", error);

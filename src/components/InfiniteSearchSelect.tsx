@@ -92,7 +92,7 @@ const InfiniteSearchSelect = ({
         selectPageRef.current,
         itemPerPageForSelect
       );
-      selectPageRef.current = fetchedResult?.page;
+      selectPageRef.current = fetchedResult?.page + 1;
       setOptionList((value) => {
         return [...value, ...fetchedResult?.options];
       });

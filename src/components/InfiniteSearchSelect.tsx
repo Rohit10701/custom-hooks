@@ -19,13 +19,13 @@ interface InfiniteSearchSelectProps extends HTMLAttributes<HTMLInputElement> {
   optionClassName?: string;
   selectClassName?: string;
   optionAreaClassName?: string;
-  pillAreaClassName? : string;
-  pillClassName? :string;
+  pillAreaClassName?: string;
+  pillClassName?: string;
   pageForSelect?: number;
   itemPerPageForSelect?: number;
   multiple?: boolean;
   renderOption?: (option: any) => React.ReactNode;
-  renderPill? :(option: any) => React.ReactNode;
+  renderPill?: (option: any) => React.ReactNode;
 }
 
 const dropdownArrowSVG = (
@@ -65,7 +65,7 @@ const InfiniteSearchSelect = ({
   const [searchList, setSearchList] = useState<any[]>([]);
   const [debouncedInput, setDebouncedInput] = useState("");
   const [selectedOptions, setSelectedOptions] = useState<any[]>([]);
-
+  const [multipleOption, setMultipleOption] = useState(multiple);
   const optionAreaRef = useRef<HTMLDivElement>(null);
   const isOutside = useOutsideClick(optionAreaRef);
   const lastOptionRef = useRef<HTMLLIElement>(null);
@@ -112,6 +112,7 @@ const InfiniteSearchSelect = ({
   useEffect(() => {
     if (isOutside) {
       setIsSelected(false);
+      setIsSearch(false)
     }
   }, [isOutside]);
 
@@ -130,11 +131,15 @@ const InfiniteSearchSelect = ({
     }
   };
 
-  const handleDeletePill = (option : any) => {
-    const filterdOptions = selectedOptions.filter(item => item !== option)
-    setSelectedOptions(filterdOptions)
-    setTextInput(filterdOptions)
-  }
+  const handleDeletePill = (option: any) => {
+    const filterdOptions = selectedOptions.filter((item) => item !== option);
+    setSelectedOptions(filterdOptions);
+    setTextInput(filterdOptions);
+  };
+
+  useEffect(() => {
+    setTextInput(selectedOptions);
+  }, [selectedOptions, setTextInput]);
 
   const debounceValue = useDebounce(debouncedInput, delay);
 
@@ -148,14 +153,17 @@ const InfiniteSearchSelect = ({
     fetchSearchDetials();
   }, [searchFunction, debounceValue]);
 
-
   const handleTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     const currentText = e.target.value;
 
     if (currentText !== "") {
       setIsSearch(true);
+      setMultipleOption(false)
+      setIsSelected(false)
+      setSelectedOptions([])
     } else {
       setIsSearch(false);
+      setMultipleOption(true);
     }
     !isSelected && setDebouncedInput(currentText);
     setTextInput(currentText);
@@ -168,8 +176,8 @@ const InfiniteSearchSelect = ({
           <div className="flex flex-col">
             <input
               onChange={handleTextChange}
-              className={`text-black bg-white ${selectClassName} h-[40px] rounded-sm pl-3`}
-              value={(!multiple && isSearch) ? (textInput?.key || textInput) : ""}
+              className={`text-black bg-white  h-[40px] rounded-sm pl-3 ${selectClassName}`}
+              value={(!multipleOption ) ? textInput?.key : ""}
               {...rest}
             />
 
@@ -182,7 +190,7 @@ const InfiniteSearchSelect = ({
                 <ul>
                   {optionList?.map((option, index) => (
                     <li
-                      key={option?.id || index}
+                      key={option?.id}
                       onClick={() => handleChooseOption(option)}
                       className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${
                         selectedOptions?.some(
@@ -192,9 +200,7 @@ const InfiniteSearchSelect = ({
                           : ""
                       } ${optionClassName}`}
                     >
-                      {renderOption
-                        ? renderOption(option)
-                        : option?.key || option}
+                      {renderOption ? renderOption(option) : option?.key}
                     </li>
                   ))}
                   <li
@@ -214,36 +220,31 @@ const InfiniteSearchSelect = ({
                 <div className="flex flex-wrap gap-x-1 gap-y-2">
                   {selectedOptions?.map((option, index) => (
                     <span
-                      key={option?.id || index}
+                      key={option?.id}
                       onClick={() => handleDeletePill(option)}
                       className={`hover:cursor-pointer rounded-sm px-[10px] py-[1px] mx-[5px] inline-block bg-blue-400 ${optionClassName}`}
                     >
-                      {renderOption
-                        ? renderOption(option)
-                        : option?.key || option}
+                      {renderPill ? renderPill(option) : option?.key}
                     </span>
                   ))}
                 </div>
               </div>
             )}
 
-
-            
             {isSearch && (
               <div
-                className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black ${optionAreaClassName}`}
+                ref={optionAreaRef}
+                className={`h-[100px] overflow-auto absolute w-full bg-white rounded-sm pt-1 text-black z-20 ${optionAreaClassName}`}
                 style={{ top: "calc(100% + 5px)", left: 0 }}
               >
                 <ul>
                   {searchList?.map((search, index) => (
                     <li
-                      key={search?.id || index}
+                      key={search?.id}
                       onClick={() => handleChooseOption(search)}
                       className={`hover:cursor-pointer hover:bg-blue-400 rounded-sm px-[10px] py-[1px] mx-[5px] ${optionClassName}`}
                     >
-                      {renderOption
-                        ? renderOption(search)
-                        : search?.key || search}
+                      {renderOption ? renderOption(search) : search?.key}
                     </li>
                   ))}
                 </ul>

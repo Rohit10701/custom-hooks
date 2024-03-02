@@ -108,7 +108,7 @@ const Page = (props: Props) => {
         pageForSelect = {1}
         itemPerPageForSelect = {20}
         renderOption={renderOption}
-        multiple= {true}
+        // multiple= {true}
         // renderPill={renderOption}
       />
     </div>
@@ -116,3 +116,4 @@ const Page = (props: Props) => {
 };
 
 export default Page;
+
